@@ -31,10 +31,18 @@ Aplicación para la gestión de proyectos y tareas desarrollada con Vue.js 3 (fr
 
 2. Instalar dependencias:
    ```bash
-   pip install -r backend/requirements.txt
+   cd backend
+   pip install -r requirements.txt
    ```
 
-3. Configurar variables de entorno (crear archivo `.env` en la raíz del proyecto):
+3. (Opcional) Si agregas nuevas dependencias, actualiza el archivo requirements.txt:
+   ```bash
+   pip freeze > requirements.txt
+   ```
+   
+   **Nota:** Asegúrate de revisar el archivo generado para incluir solo las dependencias necesarias del proyecto.
+
+4. Configurar variables de entorno (crear archivo `.env` en la raíz del proyecto):
    ```
    DATABASE_URL=sqlite:///./gestion_proyectos.db
    SECRET_KEY=tu_clave_secreta_aqui
@@ -42,11 +50,16 @@ Aplicación para la gestión de proyectos y tareas desarrollada con Vue.js 3 (fr
    ACCESS_TOKEN_EXPIRE_MINUTES=30
    ```
 
-4. Iniciar el servidor de desarrollo:
+5. Iniciar el servidor de desarrollo:
    ```bash
    cd backend
    uvicorn main:app --reload
    ```
+   
+   La aplicación estará disponible en: http://localhost:8000
+   
+   - Documentación de la API (Swagger UI): http://localhost:8000/docs
+   - Documentación alternativa (ReDoc): http://localhost:8000/redoc
 
 ### Frontend
 
