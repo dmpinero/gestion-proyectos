@@ -12,11 +12,14 @@ class Settings(BaseSettings):
     APP_VERSION: str = "0.1.0"
     DEBUG: bool = False
     
+    # Configuración de la API
+    API_V1_STR: str = "/api/v1"
+    
     # Configuración de la base de datos
     DATABASE_URL: str = "sqlite:///./gestion_proyectos.db"
     
     # Configuración de autenticación
-    SECRET_KEY: str
+    SECRET_KEY: str = "clave_secreta_por_defecto_cambiar_en_produccion"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     

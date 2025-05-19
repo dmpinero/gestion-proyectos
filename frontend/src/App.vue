@@ -1,27 +1,130 @@
 <template>
-  <div id="app">
+  <div id="app" class="min-h-screen flex flex-col">
     <!-- Barra de navegación -->
-    <nav class="navbar">
-      <div class="container">
-        <router-link to="/" class="logo">Gestión de Proyectos</router-link>
-        <div class="nav-links">
-          <router-link to="/">Inicio</router-link>
-          <router-link to="/proyectos">Proyectos</router-link>
-          <router-link to="/login" class="btn btn-outline">Iniciar Sesión</router-link>
-          <router-link to="/registro" class="btn btn-primary">Registrarse</router-link>
+    <nav class="bg-white shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <!-- Logo -->
+          <div class="flex-shrink-0 flex items-center">
+            <router-link to="/" class="text-xl font-bold text-gray-900">
+              Gestión de Proyectos
+            </router-link>
+          </div>
+          
+          <!-- Menú de navegación -->
+          <div class="hidden sm:ml-6 sm:flex sm:items-center space-x-8">
+            <router-link 
+              to="/" 
+              class="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium"
+              active-class="text-indigo-600 border-b-2 border-indigo-500"
+              exact
+            >
+              Inicio
+            </router-link>
+            <router-link 
+              to="/proyectos" 
+              class="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium"
+              active-class="text-indigo-600 border-b-2 border-indigo-500"
+            >
+              Proyectos
+            </router-link>
+            <router-link 
+              to="/login" 
+              class="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium"
+              active-class="text-indigo-600"
+            >
+              Iniciar Sesión
+            </router-link>
+            <router-link 
+              to="/registro" 
+              class="ml-8 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Registrarse
+            </router-link>
+          </div>
+          
+          <!-- Botón móvil -->
+          <div class="-mr-2 flex items-center sm:hidden">
+            <button 
+              type="button" 
+              class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+              @click="isMenuOpen = !isMenuOpen"
+            >
+              <span class="sr-only">Abrir menú principal</span>
+              <svg 
+                class="h-6 w-6" 
+                xmlns="http://www.w3.org/2000/svg" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+                :class="{'hidden': isMenuOpen, 'block': !isMenuOpen}"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <svg 
+                class="h-6 w-6" 
+                xmlns="http://www.w3.org/2000/svg" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+                :class="{'block': isMenuOpen, 'hidden': !isMenuOpen}"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Menú móvil -->
+      <div 
+        class="sm:hidden" 
+        :class="{'block': isMenuOpen, 'hidden': !isMenuOpen}"
+      >
+        <div class="pt-2 pb-3 space-y-1">
+          <router-link 
+            to="/" 
+            class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+            @click.native="isMenuOpen = false"
+          >
+            Inicio
+          </router-link>
+          <router-link 
+            to="/proyectos" 
+            class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+            @click.native="isMenuOpen = false"
+          >
+            Proyectos
+          </router-link>
+          <router-link 
+            to="/login" 
+            class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+            @click.native="isMenuOpen = false"
+          >
+            Iniciar Sesión
+          </router-link>
+          <router-link 
+            to="/registro" 
+            class="block px-3 py-2 text-base font-medium text-indigo-600 hover:text-indigo-800 hover:bg-gray-50"
+            @click.native="isMenuOpen = false"
+          >
+            Registrarse
+          </router-link>
         </div>
       </div>
     </nav>
 
     <!-- Contenido principal -->
-    <main class="main-content">
+    <main class="flex-grow">
       <router-view />
     </main>
 
     <!-- Pie de página -->
-    <footer class="footer">
-      <div class="container">
-        <p>&copy; {{ currentYear }} Gestión de Proyectos. Todos los derechos reservados.</p>
+    <footer class="bg-white border-t border-gray-200">
+      <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <p class="text-center text-sm text-gray-500">
+          &copy; {{ currentYear }} Gestión de Proyectos. Todos los derechos reservados.
+        </p>
       </div>
     </footer>
   </div>
@@ -30,9 +133,20 @@
 <script>
 export default {
   name: 'App',
+  data() {
+    return {
+      isMenuOpen: false
+    }
+  },
   computed: {
     currentYear() {
       return new Date().getFullYear();
+    }
+  },
+  watch: {
+    $route() {
+      // Cerrar el menú móvil al cambiar de ruta
+      this.isMenuOpen = false;
     }
   }
 }
@@ -41,92 +155,36 @@ export default {
 <style>
 /* Estilos globales */
 #app {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #1f2937;
 }
 
-/* Barra de navegación */
-.navbar {
-  background-color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  padding: 1rem 0;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
+/* Transiciones de página */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.2s ease;
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
 }
 
-.logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--primary-color);
-  text-decoration: none;
+/* Estilos para enlaces del router */
+.router-link-active {
+  color: #4f46e5;
 }
 
-.nav-links {
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
+/* Transiciones de página */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.2s ease;
 }
 
-.nav-links a {
-  color: var(--dark-color);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-.nav-links a:hover {
-  color: var(--primary-color);
-  text-decoration: none;
-}
-
-/* Contenido principal */
-.main-content {
-  flex: 1;
-  padding: 2rem 0;
-}
-
-/* Pie de página */
-.footer {
-  background-color: var(--dark-color);
-  color: white;
-  padding: 1.5rem 0;
-  text-align: center;
-  margin-top: auto;
-}
-
-.footer p {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-/* Estilos responsivos */
-@media (max-width: 768px) {
-  .container {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .nav-links {
-    flex-direction: column;
-    width: 100%;
-    gap: 0.5rem;
-  }
-  
-  .nav-links a {
-    width: 100%;
-    text-align: center;
-    padding: 0.5rem 0;
-  }
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
 }
 </style>

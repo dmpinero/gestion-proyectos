@@ -52,11 +52,17 @@ async def root():
     }
 
 # Importar routers
-# from app.api.routers import proyectos, tareas, usuarios
+from app.api.routers import auth
+from app.core.config import settings
 
-# app.include_router(proyectos.router, prefix="/api/proyectos", tags=["proyectos"])
-# app.include_router(tareas.router, prefix="/api/tareas", tags=["tareas"])
-# app.include_router(usuarios.router, prefix="/api/usuarios", tags=["usuarios"])
+# Incluir routers
+app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
+
+# Importar otros routers (descomentar cuando estén listos)
+# from app.api.routers import proyectos, tareas, usuarios
+# app.include_router(proyectos.router, prefix=f"{settings.API_V1_STR}/proyectos", tags=["proyectos"])
+# app.include_router(tareas.router, prefix=f"{settings.API_V1_STR}/tareas", tags=["tareas"])
+# app.include_router(usuarios.router, prefix=f"{settings.API_V1_STR}/usuarios", tags=["usuarios"])
 
 # Manejador de errores global
 
