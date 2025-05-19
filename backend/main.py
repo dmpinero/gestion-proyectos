@@ -1,0 +1,66 @@
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+
+from app.core.config import settings
+from app.db.base import Base, engine
+
+# Crear tablas en la base de datos
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    description="API para la gestión de proyectos y tareas",
+    version=settings.APP_VERSION,
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
+
+# Configuración de CORS
+if settings.CORS_ORIGINS:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.CORS_ORIGINS.split(","),
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+# Middleware para hosts de confianza
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=["*"] if settings.DEBUG else ["example.com", "*.example.com"]
+)
+# Montar archivos estáticos (para documentación, etc.)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/")
+async def root():
+    """
+    Ruta raíz de la API.
+    Devuelve un mensaje de bienvenida e información básica de la API.
+    """
+    return {
+        "message": f"¡Bienvenido a {settings.APP_NAME}!",
+        "version": settings.APP_VERSION,
+        "docs": "/docs",
+        "redoc": "/redoc"
+    }
+
+# Importar routers
+# from app.api.routers import proyectos, tareas, usuarios
+
+# app.include_router(proyectos.router, prefix="/api/proyectos", tags=["proyectos"])
+# app.include_router(tareas.router, prefix="/api/tareas", tags=["tareas"])
+# app.include_router(usuarios.router, prefix="/api/usuarios", tags=["usuarios"])
+
+# Manejador de errores global
+@app.exception_handler(404)
+async def not_found_exception_handler(request, exc):
+    return {"detail": "Recurso no encontrado"}
+
+# Ejecutar la aplicación con uvicorn directamente
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
