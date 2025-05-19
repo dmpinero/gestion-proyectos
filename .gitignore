@@ -50,6 +50,10 @@ yarn-error.log*
 *.sqlite
 *.sqlite3
 
+# Static files
+/backend/static/*
+!/backend/static/.gitkeep
+
 # Logs
 *.log
 
