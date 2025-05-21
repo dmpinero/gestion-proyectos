@@ -1,54 +1,197 @@
-# Gestión de Proyectos
+# 🚀 Gestión de Proyectos
 
-Aplicación para la gestión de proyectos y tareas desarrollada con Vue.js 3 (frontend) y FastAPI (backend).
+Aplicación web para la gestión de proyectos y tareas desarrollada con Vue.js 3 (frontend) y FastAPI (backend).
 
-## 🚀 Características
+## 🌟 Características Principales
 
-- **Frontend**: Vue.js 3 con Composition API, Vue Router y Pinia
-- **Backend**: FastAPI con SQLAlchemy
+### Frontend
+- **Framework**: Vue.js 3 con Composition API
+- **Estado**: Pinia
+- **Enrutamiento**: Vue Router
+- **Estilos**: Tailwind CSS
+- **Componentes UI**: Headless UI
+- **Iconos**: Heroicons
+- **Bundler**: Vite 4.x
+
+### Backend
+- **Framework**: FastAPI
 - **Base de datos**: SQLite (desarrollo) / MySQL (producción)
-- **Migraciones**: Alembic para gestionar cambios en el esquema de la base de datos
-- **Autenticación**: JWT
-- **Pruebas**: Unitarias, de integración y E2E
+- **ORM**: SQLAlchemy 2.0
+- **Autenticación**: JWT (JSON Web Tokens)
+- **Migraciones**: Alembic
+- **Documentación**: Swagger UI y ReDoc integrados
+- **Validación de datos**: Pydantic v2
 
-## 🛠️ Requisitos
+## 📋 Requisitos
 
-- Python 3.8+
-- Node.js 16+
-- npm o yarn
+- **Backend**:
+  - Python 3.10+
+  - SQLite3 (incluido en Python)
+  - MySQL 8.0+ (opcional para producción)
+  - pip (gestor de paquetes de Python)
+  - Poetry (recomendado) o pip para gestión de dependencias
 
-## 🚀 Instalación
+- **Frontend**:
+  - Node.js 18+ (LTS)
+  - npm 9+ o yarn 1.22+
+  - Vite 4.x
+
+## 🏗️ Estructura del Proyecto
+
+```
+gestion-proyectos/
+├── backend/                  # Código del backend (FastAPI)
+│   ├── alembic/             # Migraciones de base de datos
+│   ├── app/                  # Código de la aplicación
+│   │   ├── api/              # Endpoints de la API
+│   │   ├── core/             # Configuración y utilidades centrales
+│   │   ├── db/               # Configuración de base de datos
+│   │   └── models/           # Modelos de SQLAlchemy
+│   ├── scripts/              # Scripts de utilidad
+│   │   ├── checks/           # Scripts de verificación
+│   │   ├── db_utils/         # Utilidades de base de datos
+│   │   └── tests/            # Pruebas y depuración
+│   ├── .env.example          # Plantilla de variables de entorno
+│   ├── alembic.ini           # Configuración de Alembic
+│   ├── main.py               # Punto de entrada de la aplicación
+│   └── requirements.txt      # Dependencias de Python
+├── frontend/                 # Código del frontend (Vue 3)
+│   ├── public/               # Archivos estáticos
+│   ├── src/                  # Código fuente
+│   │   ├── assets/           # Recursos estáticos
+│   │   ├── components/       # Componentes Vue
+│   │   ├── router/          # Configuración de rutas
+│   │   ├── stores/          # Tiendas Pinia
+│   │   └── views/           # Vistas/páginas
+│   ├── .env.development     # Variables de entorno de desarrollo
+│   ├── index.html           # Página principal
+│   ├── package.json         # Dependencias y scripts
+│   └── vite.config.js       # Configuración de Vite
+├── .gitignore               # Archivos ignorados por Git
+└── README.md                # Este archivo
+```
+
+## 🚀 Instalación Rápida
+
+### 1. Clonar el repositorio
+
+```bash
+git clone https://github.com/tu-usuario/gestion-proyectos.git
+cd gestion-proyectos
+```
+
+### 2. Configuración del Backend
+
+```bash
+# Navegar al directorio del backend
+cd backend
+
+# Crear y activar entorno virtual (recomendado)
+python -m venv venv
+# Windows
+.\venv\Scripts\activate
+# Unix/macOS
+source venv/bin/activate
+
+# Instalar dependencias
+pip install -r requirements.txt
+
+# Configurar variables de entorno
+cp .env.example .env
+# Editar el archivo .env con tu configuración
+
+# Inicializar la base de datos (SQLite por defecto)
+python -m scripts.db_utils.create_tables
+
+# O si prefieres usar migraciones con Alembic
+alembic upgrade head
+```
+
+### 3. Configuración del Frontend
+
+```bash
+# Volver al directorio raíz
+cd ..
+
+# Navegar al directorio del frontend
+cd frontend
+
+# Instalar dependencias
+npm install
+```
+
+## 🏃 Ejecución
 
 ### Backend
 
-1. Crear y activar entorno virtual:
-   ```bash
-   python -m venv venv
-   # En Windows:
-   .\venv\Scripts\activate
-   # En Unix/macOS:
-   source venv/bin/activate
-   ```
+```bash
+# En el directorio backend
+uvicorn main:app --reload
+```
 
-2. Instalar dependencias:
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   ```
+### Frontend
 
-   ### Dependencias adicionales para MySQL:
-   ```bash
-   pip install pymysql
-   ```
+```bash
+# En el directorio frontend
+npm run dev
+```
 
-3. (Opcional) Si agregas nuevas dependencias, actualiza el archivo requirements.txt:
-   ```bash
-   pip freeze > requirements.txt
-   ```
-   
-   **Nota:** Asegúrate de revisar el archivo generado para incluir solo las dependencias necesarias del proyecto.
+La aplicación estará disponible en:
+- Frontend: http://localhost:3000
+- Backend (API): http://localhost:8000
+- Documentación de la API: http://localhost:8000/docs
+- Documentación alternativa: http://localhost:8000/redoc
 
-4. Configurar variables de entorno (crear archivo `.env` en la raíz del proyecto):
+## 🏗️ Estructura del Proyecto
+
+```
+gestion-proyectos/
+├── backend/              # Backend en FastAPI
+│   ├── alembic/         # Migraciones de la base de datos
+│   ├── app/              # Código fuente del backend
+│   ├── scripts/          # Scripts de utilidad
+│   ├── tests/            # Pruebas automatizadas
+│   ├── .env.example      # Plantilla de variables de entorno
+│   ├── alembic.ini       # Configuración de Alembic
+│   ├── main.py           # Punto de entrada del backend
+│   ├── requirements.txt  # Dependencias principales
+│   └── README.md        # Documentación del backend
+│
+└── frontend/            # Frontend en Vue.js 3
+    ├── public/           # Archivos estáticos
+    ├── src/              # Código fuente del frontend
+    ├── .env.example      # Variables de entorno de ejemplo
+    ├── package.json      # Dependencias y scripts
+    └── README.md        # Documentación del frontend
+```
+
+## 🧪 Pruebas
+
+### Backend
+```bash
+cd backend
+pytest
+```
+
+### Frontend
+```bash
+cd frontend
+npm run test:unit
+```
+
+## 📄 Licencia
+
+Este proyecto está bajo la licencia MIT. Ver el archivo `LICENSE` para más detalles.
+
+## 🤝 Contribución
+
+Las contribuciones son bienvenidas. Por favor, lee las [guías de contribución](CONTRIBUTING.md) para más detalles.
+
+## 📧 Contacto
+
+Tu Nombre - [@tu_usuario](https://twitter.com/tu_usuario) - email@ejemplo.com
+
+Enlace del proyecto: [https://github.com/tu-usuario/gestion-proyectos](https://github.com/tu-usuario/gestion-proyectos)
 
    ### Para SQLite (desarrollo local):
    ```
@@ -144,36 +287,153 @@ Aplicación para la gestión de proyectos y tareas desarrollada con Vue.js 3 (fr
    ```
 
 6. Iniciar el servidor de desarrollo:
+ ## 🚀 Despliegue
+
+### Backend en Producción
+
+1. **Requisitos**:
+   - Servidor Linux (Ubuntu 22.04 recomendado)
+   - Python 3.10+
+   - MySQL 8.0+ o PostgreSQL 13+
+   - Nginx (como proxy inverso)
+   - Supervisor o systemd (para gestión de procesos)
+
+2. **Configuración**:
    ```bash
-   cd backend
-   uvicorn main:app --reload
+   # Instalar dependencias del sistema
+   sudo apt update
+   sudo apt install -y python3-pip python3-venv nginx
+   
+   # Clonar el repositorio
+   git clone https://github.com/tu-usuario/gestion-proyectos.git
+   cd gestion-proyectos/backend
+   
+   # Configurar entorno virtual
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt gunicorn
+   
+   # Configurar variables de entorno
+   cp .env.example .env
+   nano .env  # Configurar según producción
+   
+   # Aplicar migraciones
+   alembic upgrade head
+   
+   # Probar que funciona
+   gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app
    ```
-   
-   La aplicación estará disponible en: http://localhost:8000
-   
-   - Documentación de la API (Swagger UI): http://localhost:8000/docs
-   - Documentación alternativa (ReDoc): http://localhost:8000/redoc
 
-### Frontend
+3. **Configurar Nginx**:
+   ```nginx
+   server {
+       listen 80;
+       server_name tuejemplo.com;
 
-1. Instalar dependencias:
+       location / {
+           proxy_pass http://127.0.0.1:8000;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+       }
+   }
+   ```
+
+4. **Configurar systemd** (en `/etc/systemd/system/gestion-proyectos.service`):
+   ```ini
+   [Unit]
+   Description=Gestión de Proyectos Backend
+   After=network.target
+
+   [Service]
+   User=usuario
+   Group=www-data
+   WorkingDirectory=/ruta/a/gestion-proyectos/backend
+   Environment="PATH=/ruta/a/gestion-proyectos/backend/venv/bin"
+   ExecStart=/ruta/a/gestion-proyectos/backend/venv/bin/gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app
+   Restart=always
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+### Frontend en Producción
+
+1. **Construir para producción**:
    ```bash
    cd frontend
    npm install
+   npm run build
    ```
 
-2. Iniciar el servidor de desarrollo:
-   ```bash
-   npm run dev
+2. **Configurar Nginx** para servir los archivos estáticos:
+   ```nginx
+   server {
+       listen 80;
+       server_name app.tuejemplo.com;
+       root /ruta/a/gestion-proyectos/frontend/dist;
+       index index.html;
+
+       location / {
+           try_files $uri $uri/ /index.html;
+       }
+
+       location /api {
+           proxy_pass http://localhost:8000;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_cache_bypass $http_upgrade;
+       }
+   }
    ```
 
-## 🧪 Ejecutar pruebas
+3. **Opciones alternativas de despliegue**:
+   - **Vercel**: Despliegue directo desde GitHub
+   - **Netlify**: Despliegue continuo con integración Git
+   - **GitHub Pages**: Para el frontend (requiere configuración especial para SPA)
+
+## 🔧 Desarrollo
+
+### Estructura de ramas
+- `main`: Rama principal, solo código estable
+- `develop`: Rama de integración para características en desarrollo
+- `feature/*`: Ramas para nuevas características
+- `hotfix/*`: Ramas para correcciones críticas
+
+### Convenciones de commits
+Usamos [Conventional Commits](https://www.conventionalcommits.org/):
+- `feat:` Nueva característica
+- `fix:` Corrección de errores
+- `docs:` Cambios en la documentación
+- `style:` Cambios de formato (puntos y coma, indentación, etc.)
+- `refactor:` Cambios que no corrigen errores ni agregan funcionalidades
+- `perf:` Cambios que mejoran el rendimiento
+- `test:` Agregar o corregir pruebas
+- `chore:` Cambios en el proceso de construcción o herramientas auxiliares
+
+Ejemplo:
+```bash
+git commit -m "feat(usuarios): agregar autenticación con JWT"
+```
+
+## 📝 Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.
+
+## 🤝 Contribuir
+
+Las contribuciones son bienvenidas. Por favor, lee nuestras [pautas de contribución](CONTRIBUTING.md) antes de enviar un pull request.
+
+## 📞 Soporte
+
+Si tienes preguntas o necesitas ayuda, por favor [abre un issue](https://github.com/tu-usuario/gestion-proyectos/issues).
 
 ### Backend
 ```bash
 # Todas las pruebas
 pytest
-
 # Con cobertura
 pytest --cov=app
 

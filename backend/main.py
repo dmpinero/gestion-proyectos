@@ -67,12 +67,12 @@ async def root():
         "redoc": "/redoc"
     }
 
-# Importar routers
-from app.api.routers import auth
+# Importar el router principal de la API
+from app.api import api_router
 from app.core.config import settings
 
-# Incluir routers
-app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
+# Incluir el router principal de la API
+app.include_router(api_router)
 
 # Importar otros routers (descomentar cuando estén listos)
 # from app.api.routers import proyectos, tareas, usuarios
