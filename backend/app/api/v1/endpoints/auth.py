@@ -1,22 +1,29 @@
+"""
+Módulo de autenticación para la API v1.
+Proporciona endpoints para registro y autenticación de usuarios.
+"""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import Any, Dict
 import logging
 import traceback
+from datetime import timedelta
 
+# Importaciones de la aplicación
 from app.core.security import get_password_hash, create_access_token, verify_password
 from app.db.base import get_db
 from app.models.user import User
 from app.schemas.token import Token, UserLogin, UserCreate, UserResponse
-from datetime import timedelta
 from app.core.config import settings
 
-# Configurar logging
+# Configuración de logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+# Crear el router para autenticación
+router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/register", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
 def register_user(

@@ -40,6 +40,8 @@ yarn-error.log*
 .idea/
 *.swp
 *.swo
+*.sublime-*
+.history/
 
 # Environment variables
 .env
@@ -47,8 +49,65 @@ yarn-error.log*
 !.env.example
 
 # Database
+*.db
 *.sqlite
 *.sqlite3
+*.sql
+
+# Logs
+logs/
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# Backend specific
+/backend/alembic/versions/*.py
+!backend/alembic/versions/.gitkeep
+
+# Scripts de desarrollo
+/scripts/backup/*.sql
+!/scripts/backup/.gitkeep
+*.db
+*.db-journal
+
+# Scripts temporales
+scripts/backup/*
+!scripts/backup/.gitkeep
+
+# Archivos de configuración local
+local_settings.py
+*.local.*
+
+# Archivos de respaldo
+*~
+*.*~
+*.bak
+*.swp
+*.swo
+
+# Directorios de entorno virtual
+venv/
+ENV/
+.env/
+.venv/
+env/
+
+# Archivos de entorno
+.env
+!.env.example
 
 # Static files
 /backend/static/*
