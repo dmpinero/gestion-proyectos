@@ -26,10 +26,10 @@
 
       <section class="cta">
         <h2>¿Listo para comenzar?</h2>
-        <p>Inicia sesión o regístrate para acceder a todas las funciones.</p>
+        <p>Inicia sesión o crea una cuenta para acceder a todas las funciones.</p>
         <div class="cta-buttons">
           <router-link to="/login" class="btn btn-primary">Iniciar Sesión</router-link>
-          <router-link to="/register" class="btn btn-outline">Registrarse</router-link>
+          <button @click="openRegisterModal" class="btn btn-outline">Crear una cuenta</button>
         </div>
       </section>
     </main>
@@ -37,11 +37,17 @@
 </template>
 
 <script>
+import { useAuthStore } from '@/stores/authStore';
+
 export default {
   name: 'HomeView',
   setup() {
-    return {
-      // Datos y lógica del componente
+    const authStore = useAuthStore();
+    return { authStore };
+  },
+  methods: {
+    openRegisterModal() {
+      this.authStore.openRegisterModal();
     }
   }
 }

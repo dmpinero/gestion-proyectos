@@ -1,11 +1,11 @@
 <template>
-  <AuthLayout
-    title="Iniciar Sesión"
-    subtitle="Ingresa tus credenciales para acceder a tu cuenta"
-    link-text="¿No tienes una cuenta?"
-    link-label="Regístrate"
-    :link-to="{ name: 'Register' }"
-  >
+  <div>
+    <AuthLayout
+      title="Iniciar Sesión"
+      subtitle="Ingresa tus credenciales para acceder a tu cuenta"
+      link-text="¿No tienes una cuenta?"
+      @link-click="openRegisterModal"
+    >
     <form @submit.prevent="handleLogin" class="space-y-6">
       <!-- Mensaje de error general -->
       <div v-if="errors.form" class="bg-red-50 border-l-4 border-red-400 p-4">
@@ -117,114 +117,217 @@
         <button
           type="submit"
           class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          :class="{ 'opacity-75 cursor-not-allowed': loading }"
-          :disabled="loading"
+          :class="{ 'opacity-75 cursor-not-allowed': isLoading }"
+          :disabled="isLoading"
         >
-          <svg v-if="loading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <svg v-if="isLoading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
           <span v-else>Iniciar Sesión</span>
         </button>
       </div>
+      <!-- Botón directo para registro (alternativa) -->
+      <div class="mt-6 text-center">
+        <button 
+          type="button" 
+          @click="openRegisterModal" 
+          class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          Crear una cuenta
+        </button>
+      </div>
     </form>
-  </AuthLayout>
+    </AuthLayout>
+
+    <!-- Componente RegisterForm (ya incluye su propia implementación de modal) -->
+    <RegisterForm
+      v-if="authStore.showRegisterModal"
+      @close="authStore.closeRegisterModal()"
+      @success="handleRegistrationSuccess"
+    />
+  </div>
 </template>
 
 <script>
+import { ref } from 'vue';
+import { useAuthStore } from '@/stores/authStore';
 import AuthLayout from '@/components/auth/AuthLayout.vue';
+import RegisterForm from '@/components/auth/RegisterForm.vue';
 
 export default {
   name: 'LoginView',
   components: {
-    AuthLayout
+    AuthLayout,
+    RegisterForm
   },
-  data() {
+  setup() {
+    const authStore = useAuthStore();
+    const email = ref('')
+    const password = ref('')
+    const rememberMe = ref(false)
+    const showPassword = ref(false)
+    const errors = ref({
+      form: null,
+      email: null,
+      password: null
+    })
+    const isLoading = ref(false)
+
     return {
-      email: '',
-      password: '',
-      rememberMe: false,
-      showPassword: false,
-      loading: false,
-      errors: {
-        form: '',
-        email: '',
-        password: ''
-      }
-    };
+      authStore,
+      email,
+      password,
+      rememberMe,
+      showPassword,
+      errors,
+      isLoading
+    }
   },
   methods: {
+    openRegisterModal() {
+      // Usar el store para mostrar el modal
+      this.authStore.openRegisterModal();
+    },
     validateForm() {
-      let isValid = true;
-      this.errors = { form: '', email: '', password: '' };
+      this.errors = {
+        form: null,
+        email: null,
+        password: null
+      };
 
-      // Validar email
       if (!this.email) {
         this.errors.email = 'El correo electrónico es obligatorio';
-        isValid = false;
-      } else if (!/\S+@\S+\.\S+/.test(this.email)) {
-        this.errors.email = 'Por favor ingresa un correo electrónico válido';
-        isValid = false;
+        return false;
       }
 
-      // Validar contraseña
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email)) {
+        this.errors.email = 'Por favor ingresa un correo electrónico válido';
+        return false;
+      }
+
       if (!this.password) {
         this.errors.password = 'La contraseña es obligatoria';
-        isValid = false;
-      } else if (this.password.length < 6) {
-        this.errors.password = 'La contraseña debe tener al menos 6 caracteres';
-        isValid = false;
+        return false;
       }
 
-      return isValid;
+      return true;
     },
     async handleLogin() {
-      if (!this.validateForm()) {
-        return;
-      }
+      if (!this.validateForm()) return;
 
-      this.loading = true;
-      this.errors.form = '';
+      this.isLoading = true;
+      this.errors.form = null;
 
       try {
-        // Simulamos una petición de inicio de sesión
-        await new Promise((resolve, reject) => {
-          setTimeout(() => {
-            // Simulamos credenciales correctas
-            if (this.email === 'admin@example.com' && this.password === 'password') {
-              resolve();
-            } else {
-              reject(new Error('Credenciales incorrectas. Por favor, inténtalo de nuevo.'));
-            }
-          }, 1500);
-        });
-
-        // Guardar el estado de recordar sesión si es necesario
+        // Usar el store de autenticación para iniciar sesión
+        const credentials = {
+          email: this.email,
+          password: this.password
+        };
+        
+        console.log('Intentando iniciar sesión con:', this.email);
+        
+        // Llamar al método login del store
+        await this.authStore.login(credentials);
+        
+        // Si llegamos aquí, el login fue exitoso
+        console.log('Login exitoso, redirigiendo al dashboard');
+        
+        // Guardar email si se seleccionó recordar
         if (this.rememberMe) {
-          localStorage.setItem('rememberMe', 'true');
+          localStorage.setItem('savedEmail', this.email);
         } else {
-          localStorage.removeItem('rememberMe');
+          localStorage.removeItem('savedEmail');
         }
-
-        // Redirigir al dashboard después del inicio de sesión exitoso
-        this.$router.push({ name: 'Dashboard' });
+        
+        // Redirigir al dashboard
+        this.$router.push('/dashboard');
       } catch (error) {
-        console.error('Error al iniciar sesión:', error);
-        this.errors.form = error.message || 'Error al iniciar sesión. Por favor, inténtalo de nuevo.';
+        console.error('Error en el inicio de sesión:', error);
+        
+        // Manejo detallado de errores
+        if (error.response) {
+          if (error.response.status === 401) {
+            this.errors.form = 'Credenciales inválidas. Por favor, verifica tu correo y contraseña.';
+          } else if (error.response.data && error.response.data.detail) {
+            this.errors.form = error.response.data.detail;
+          } else {
+            this.errors.form = `Error del servidor: ${error.response.status}`;
+          }
+        } else if (error.message) {
+          this.errors.form = error.message;
+        } else {
+          this.errors.form = 'Ocurrió un error al iniciar sesión. Por favor, inténtalo de nuevo.';
+        }
       } finally {
-        this.loading = false;
+        this.isLoading = false;
+      }
+    },
+    handleRegistrationSuccess(userData) {
+      // Mostrar mensaje de éxito
+      this.errors.form = null;
+      this.authStore.closeRegisterModal();
+      
+      // Usar el mensaje del objeto userData si existe, o un mensaje predeterminado
+      const message = userData && userData.message ? userData.message : '¡Registro exitoso! Por favor inicia sesión.';
+      
+      // Verificar que $toast esté disponible antes de usarlo
+      if (this.$toast) {
+        this.$toast.success(message);
+      } else {
+        console.log('Mensaje de éxito:', message);
+        // Alternativa si $toast no está disponible
+        alert(message);
       }
     }
   },
   mounted() {
-    // Verificar si hay credenciales guardadas
-    if (localStorage.getItem('rememberMe') === 'true') {
-      this.rememberMe = true;
+    // Verificar si hay un mensaje en la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const message = urlParams.get('message');
+    const registered = urlParams.get('registered');
+    const email = urlParams.get('email');
+    
+    if (message) {
+      this.$toast.info(message);
     }
+    
+    // Si el usuario viene de un registro exitoso, mostrar un mensaje de bienvenida
+    if (registered === 'true') {
+      this.$toast.success('¡Registro exitoso! Ahora puedes iniciar sesión con tus credenciales.');
+      
+      // Si tenemos el email, prellenarlo en el formulario
+      if (email) {
+        this.formData.email = email;
+      }
+    } else {
+      // Si no hay email en la URL, usar el guardado en localStorage
+      const savedEmail = localStorage.getItem('savedEmail');
+      if (savedEmail) {
+        this.email = savedEmail;
+        this.rememberMe = true;
+      }
+    }
+  },
+  beforeUnmount() {
+    // Limpiar el body style cuando el componente se desmonte
+    document.body.style.overflow = 'auto';
   }
 }
 </script>
 
 <style scoped>
 /* Estilos específicos del componente */
+.modal-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 </style>

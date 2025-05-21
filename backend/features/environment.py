@@ -11,7 +11,7 @@ def before_scenario(context, scenario):
     
     # Configurar la base de datos de prueba
     os.environ['TESTING'] = 'True'
-    os.environ['DATABASE_URL'] = 'sqlite:///./test.db'
+    os.environ['DATABASE_URL'] = 'mysql+pymysql://gestion_app:DMP73noesilva@172.18.96.1:3306/gestion_proyectos_test?charset=utf8mb4'
     
     # Importar después de configurar las variables de entorno
     from app.db.base import Base, engine, SessionLocal

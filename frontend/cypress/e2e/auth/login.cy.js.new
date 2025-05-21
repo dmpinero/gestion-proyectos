@@ -1,0 +1,122 @@
+describe('Pruebas de Login', () => {
+  const testUser = {
+    email: 'usuario.test@example.com',
+    password: 'Password123!'
+  };
+
+  beforeEach(() => {
+    // Visitar la página de login antes de cada prueba
+    cy.visit('/login');
+    
+    // Esperar a que la página se cargue completamente
+    cy.get('form').should('be.visible');
+    
+    // Limpiar el localStorage antes de cada prueba
+    cy.clearLocalStorage();
+    
+    // Configurar interceptor para las peticiones de login
+    cy.intercept('POST', '/api/auth/login').as('loginRequest');
+  });
+
+  it('debe mostrar el formulario de login correctamente', () => {
+    // Verificar que el título está presente
+    cy.get('h2').should('contain', 'Iniciar Sesión');
+    
+    // Verificar que los campos del formulario están presentes
+    cy.get('input[type="email"]').should('be.visible');
+    cy.get('input[type="password"]').should('be.visible');
+    cy.get('input[type="checkbox"]').should('be.visible');
+    
+    // Verificar que el botón de submit está presente
+    cy.get('button[type="submit"]')
+      .should('be.visible')
+      .and('contain', 'Iniciar Sesión');
+    
+    // Verificar que el enlace de registro esté presente
+    cy.contains('Crear una cuenta').should('be.visible');
+    
+    // Tomar captura de pantalla
+    cy.screenshot('login-form');
+  });
+
+  it('debe mostrar errores de validación en el formulario de login', () => {
+    // Intentar enviar el formulario vacío
+    cy.get('button[type="submit"]').click();
+    
+    // Verificar que los campos son requeridos (validación del navegador)
+    // Nota: La validación exacta depende del navegador, por lo que verificamos los atributos
+    cy.get('input[type="email"]:invalid').should('exist');
+    
+    // Tomar captura de pantalla de los errores
+    cy.screenshot('login-form-errors');
+  });
+
+  it('debe mostrar error con credenciales inválidas', () => {
+    // Configurar el mock para simular credenciales inválidas
+    cy.intercept('POST', '/api/auth/login', {
+      statusCode: 401,
+      body: {
+        message: 'Credenciales inválidas',
+        error: 'INVALID_CREDENTIALS'
+      },
+      delay: 300
+    }).as('loginError');
+    
+    // Rellenar el formulario con credenciales incorrectas
+    cy.get('input[type="email"]').type('usuario.incorrecto@example.com');
+    cy.get('input[type="password"]').type('ContraseñaIncorrecta123!');
+    
+    // Enviar el formulario
+    cy.get('button[type="submit"]').click();
+    
+    // Esperar a que se complete la petición
+    cy.wait('@loginError');
+    
+    // Verificar que se muestra el mensaje de error
+    cy.contains('Credenciales inválidas').should('be.visible');
+    
+    // Tomar captura de pantalla del error
+    cy.screenshot('login-invalid-credentials');
+  });
+
+  it('debe iniciar sesión exitosamente', () => {
+    // Configurar el mock para simular un login exitoso
+    cy.intercept('POST', '/api/auth/login', {
+      statusCode: 200,
+      body: {
+        message: 'Login exitoso',
+        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlVzdWFyaW8gVGVzdCIsImlhdCI6MTUxNjIzOTAyMn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+        user: {
+          id: 1,
+          email: testUser.email,
+          name: 'Usuario Test',
+          role: 'user'
+        }
+      },
+      delay: 300
+    }).as('loginSuccess');
+    
+    // Rellenar el formulario
+    cy.get('input[type="email"]').type(testUser.email);
+    cy.get('input[type="password"]').type(testUser.password);
+    cy.get('input[type="checkbox"]').check();
+    
+    // Enviar el formulario
+    cy.get('button[type="submit"]').click();
+    
+    // Esperar a que se complete la petición
+    cy.wait('@loginSuccess');
+    
+    // Verificar que se redirige al dashboard
+    cy.url().should('include', '/dashboard');
+    
+    // Verificar que el token se guardó en localStorage
+    cy.window().then((win) => {
+      expect(win.localStorage.getItem('token')).to.exist;
+      expect(win.localStorage.getItem('isAuthenticated')).to.equal('true');
+    });
+    
+    // Tomar captura de pantalla
+    cy.screenshot('login-success');
+  });
+});

@@ -21,9 +21,14 @@
         <slot name="links">
           <p class="text-gray-600">
             {{ linkText }}
-            <router-link :to="linkTo" class="font-medium text-indigo-600 hover:text-indigo-500">
-              {{ linkLabel }}
-            </router-link>
+            <button 
+              type="button" 
+              class="font-medium text-indigo-600 hover:text-indigo-500 bg-transparent border-none p-0 cursor-pointer"
+              @click="$emit('link-click')"
+              style="font-weight: bold;"
+            >
+              Crear una cuenta
+            </button>
           </p>
         </slot>
       </div>
@@ -53,12 +58,14 @@ export default {
     },
     linkTo: {
       type: [String, Object],
-      default: '/'
+      default: '/',
+      required: false
     },
     showLinks: {
       type: Boolean,
       default: true
     }
-  }
+  },
+  // Ya no necesitamos métodos específicos, el botón emite directamente el evento
 }
 </script>

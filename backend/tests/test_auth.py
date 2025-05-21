@@ -19,7 +19,8 @@ def test_db():
     user = User(
         email="test@example.com",
         hashed_password=hashed_password,
-        full_name="Test User",
+        first_name="Test",
+        last_name="User",
         is_active=True
     )
     db.add(user)
@@ -68,10 +69,44 @@ def test_login_nonexistent_user(client, test_db):
     """Prueba el inicio de sesión con un usuario que no existe."""
     response = client.post(
         "/api/v1/auth/login",
-        json={"email": "nonexistent@example.com", "password": "testpassword"},
+        json={"email": "nonexistent@example.com", "password": "wrongpassword"},
         headers={"Content-Type": "application/json"}
     )
     assert response.status_code == 401
     data = response.json()
     assert "detail" in data
-    assert data["detail"] == "Credenciales incorrectas"
+    assert data["detail"] == "Incorrect email or password"
+
+def test_register_user(client, test_db):
+    """Prueba el registro de un nuevo usuario."""
+    # Datos para el nuevo usuario
+    new_user_data = {
+        "email": "newuser@example.com",
+        "firstName": "New",
+        "lastName": "User",
+        "password": "securepassword123"
+    }
+    
+    # Enviar solicitud de registro
+    response = client.post(
+        "/api/v1/auth/register",
+        json=new_user_data,
+        headers={"Content-Type": "application/json"}
+    )
+    
+    # Verificar respuesta
+    assert response.status_code == 201, f"Error en el registro: {response.text}"
+    data = response.json()
+    assert "token" in data
+    assert data["token_type"] == "bearer"
+    
+    # Verificar que el usuario se haya creado en la base de datos
+    user = test_db.query(User).filter(User.email == new_user_data["email"]).first()
+    assert user is not None
+    assert user.email == new_user_data["email"]
+    assert user.first_name == new_user_data["firstName"]
+    assert user.last_name == new_user_data["lastName"]
+    
+    # Limpiar: eliminar el usuario creado para esta prueba
+    test_db.delete(user)
+    test_db.commit()

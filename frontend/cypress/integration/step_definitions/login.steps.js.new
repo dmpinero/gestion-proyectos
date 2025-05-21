@@ -1,0 +1,185 @@
+/// <reference types="cypress" />
+
+// Paso 1: Configuración inicial
+beforeEach(() => {
+  // Interceptar peticiones de login
+  cy.intercept('POST', '/api/auth/login').as('loginRequest');
+});
+
+// Pasos comunes
+const visitarPaginaLogin = () => {
+  cy.visit('/login');
+  cy.get('form').should('be.visible');
+};
+
+const rellenarFormularioLogin = (email, password) => {
+  cy.get('input[type="email"]').clear().type(email);
+  cy.get('input[type="password"]').clear().type(password);
+};
+
+const enviarFormularioLogin = () => {
+  cy.get('button[type="submit"]').click();
+};
+
+// Definiciones de pasos (Given, When, Then)
+
+// Given
+Cypress.Commands.add('given_estoy_en_pagina_login', () => {
+  visitarPaginaLogin();
+});
+
+// When
+Cypress.Commands.add('when_introduzco_credenciales_validas', () => {
+  // Configurar mock para simular login exitoso
+  cy.intercept('POST', '/api/auth/login', {
+    statusCode: 200,
+    body: {
+      message: 'Login exitoso',
+      token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlVzdWFyaW8gVGVzdCIsImlhdCI6MTUxNjIzOTAyMn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+      user: {
+        id: 1,
+        email: 'usuario.test@example.com',
+        name: 'Usuario Test',
+        role: 'user'
+      }
+    },
+    delay: 300
+  }).as('loginSuccess');
+  
+  rellenarFormularioLogin('usuario.test@example.com', 'Password123!');
+});
+
+Cypress.Commands.add('when_introduzco_credenciales_invalidas', () => {
+  // Configurar mock para simular credenciales inválidas
+  cy.intercept('POST', '/api/auth/login', {
+    statusCode: 401,
+    body: {
+      message: 'Credenciales inválidas',
+      error: 'INVALID_CREDENTIALS'
+    },
+    delay: 300
+  }).as('loginError');
+  
+  rellenarFormularioLogin('usuario.incorrecto@example.com', 'ContraseñaIncorrecta123!');
+});
+
+Cypress.Commands.add('when_introduzco_email_invalido', () => {
+  cy.get('input[type="email"]').clear().type('email-invalido');
+  cy.get('input[type="password"]').clear().type('Password123!');
+});
+
+Cypress.Commands.add('when_introduzco_contraseña_corta', () => {
+  cy.get('input[type="email"]').clear().type('usuario.test@example.com');
+  cy.get('input[type="password"]').clear().type('123');
+});
+
+Cypress.Commands.add('when_intento_enviar_formulario_login_vacio', () => {
+  cy.get('input[type="email"]').clear();
+  cy.get('input[type="password"]').clear();
+  enviarFormularioLogin();
+});
+
+Cypress.Commands.add('when_hago_clic_en_boton_login', () => {
+  enviarFormularioLogin();
+});
+
+Cypress.Commands.add('when_marco_recordar_sesion', () => {
+  cy.get('input[type="checkbox"]').check();
+});
+
+// Then
+Cypress.Commands.add('then_deberia_ver_formulario_login', () => {
+  cy.get('h2').should('contain', 'Iniciar Sesión');
+  cy.get('input[type="email"]').should('be.visible');
+  cy.get('input[type="password"]').should('be.visible');
+  cy.get('input[type="checkbox"]').should('be.visible');
+});
+
+Cypress.Commands.add('then_deberia_ver_boton_login', () => {
+  cy.get('button[type="submit"]').should('be.visible').and('contain', 'Iniciar Sesión');
+});
+
+Cypress.Commands.add('then_deberia_ver_enlace_registro', () => {
+  cy.contains('Crear una cuenta').should('be.visible');
+});
+
+Cypress.Commands.add('then_deberia_ver_errores_validacion_login', () => {
+  cy.get('input[type="email"]:invalid').should('exist');
+  cy.get('input[type="password"]:invalid').should('exist');
+});
+
+Cypress.Commands.add('then_deberia_ver_error_credenciales_invalidas', () => {
+  cy.contains('Credenciales inválidas').should('be.visible');
+});
+
+Cypress.Commands.add('then_deberia_ser_redirigido_a_dashboard', () => {
+  cy.url().should('include', '/dashboard');
+});
+
+Cypress.Commands.add('then_deberia_guardar_token_en_localStorage', () => {
+  cy.window().then((win) => {
+    expect(win.localStorage.getItem('token')).to.exist;
+    expect(win.localStorage.getItem('isAuthenticated')).to.equal('true');
+  });
+});
+
+// Implementación de los pasos BDD
+Given('estoy en la página de login', () => {
+  cy.given_estoy_en_pagina_login();
+});
+
+When('introduzco credenciales válidas', () => {
+  cy.when_introduzco_credenciales_validas();
+});
+
+When('introduzco credenciales inválidas', () => {
+  cy.when_introduzco_credenciales_invalidas();
+});
+
+When('introduzco un email inválido', () => {
+  cy.when_introduzco_email_invalido();
+});
+
+When('introduzco una contraseña demasiado corta', () => {
+  cy.when_introduzco_contraseña_corta();
+});
+
+When('intento enviar el formulario de login vacío', () => {
+  cy.when_intento_enviar_formulario_login_vacio();
+});
+
+When('hago clic en el botón de login', () => {
+  cy.when_hago_clic_en_boton_login();
+});
+
+When('marco la opción de recordar sesión', () => {
+  cy.when_marco_recordar_sesion();
+});
+
+Then('debería ver el formulario de login', () => {
+  cy.then_deberia_ver_formulario_login();
+});
+
+Then('debería ver el botón de login', () => {
+  cy.then_deberia_ver_boton_login();
+});
+
+Then('debería ver el enlace de registro', () => {
+  cy.then_deberia_ver_enlace_registro();
+});
+
+Then('debería ver errores de validación', () => {
+  cy.then_deberia_ver_errores_validacion_login();
+});
+
+Then('debería ver un mensaje de error de credenciales inválidas', () => {
+  cy.then_deberia_ver_error_credenciales_invalidas();
+});
+
+Then('debería ser redirigido al dashboard', () => {
+  cy.then_deberia_ser_redirigido_a_dashboard();
+});
+
+Then('debería guardar el token en localStorage', () => {
+  cy.then_deberia_guardar_token_en_localStorage();
+});

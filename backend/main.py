@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -20,21 +19,38 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Configuración de CORS
-if settings.CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.CORS_ORIGINS.split(","),
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-
-# Middleware para hosts de confianza
+# Configuración de CORS - Simplificada para desarrollo
 app.add_middleware(
-    TrustedHostMiddleware,
-    allowed_hosts=["*"] if settings.DEBUG else ["example.com", "*.example.com"]
+    CORSMiddleware,
+    allow_origins=["*"],  # Permitir cualquier origen en desarrollo
+    allow_credentials=False,  # Deshabilitar credenciales para evitar conflictos
+    allow_methods=["*"],  # Permitir todos los métodos
+    allow_headers=["*"],  # Permitir todos los encabezados
 )
+
+# Middleware para manejar las solicitudes OPTIONS (preflight)
+@app.middleware("http")
+async def options_middleware(request: Request, call_next):
+    if request.method == "OPTIONS":
+        # Responder directamente a las solicitudes OPTIONS
+        headers = {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Accept",
+            "Access-Control-Max-Age": "86400",  # 24 horas
+        }
+        return JSONResponse(content={}, status_code=200, headers=headers)
+    
+    # Para otras solicitudes, continuar con el flujo normal
+    response = await call_next(request)
+    
+    # Asegurarse de que siempre se envíen los encabezados CORS
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    
+    return response
+
+# En desarrollo, no utilizamos verificación de host
+# Esto permite que cualquier host pueda acceder a la API
 # Montar archivos estáticos (para documentación, etc.)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 

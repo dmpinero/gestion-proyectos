@@ -1,0 +1,187 @@
+/// <reference types="cypress" />
+
+// Paso 1: Configuración inicial
+beforeEach(() => {
+  // Interceptar peticiones de registro
+  cy.intercept('POST', '/api/auth/register').as('registerRequest');
+});
+
+// Pasos comunes
+const visitarPaginaLogin = () => {
+  cy.visit('/login');
+  cy.get('form').should('be.visible');
+};
+
+const abrirFormularioRegistro = () => {
+  visitarPaginaLogin();
+  cy.contains('Crear una cuenta').click();
+  cy.get('h3').contains('Crear una cuenta').should('be.visible');
+};
+
+const rellenarCampo = (campo, valor) => {
+  switch (campo.toLowerCase()) {
+    case 'nombre':
+      cy.get('#first-name').clear().type(valor);
+      break;
+    case 'apellidos':
+      cy.get('#last-name').clear().type(valor);
+      break;
+    case 'email':
+      cy.get('#email').clear().type(valor);
+      break;
+    case 'contraseña':
+      cy.get('#password').clear().type(valor);
+      break;
+    case 'confirmación':
+      cy.get('#password-confirm').clear().type(valor);
+      break;
+    case 'rol':
+      cy.get('#role').select(valor);
+      break;
+    default:
+      throw new Error(`Campo no reconocido: ${campo}`);
+  }
+};
+
+const rellenarFormulario = (datosTabla) => {
+  datosTabla.forEach(fila => {
+    rellenarCampo(fila.campo, fila.valor);
+  });
+};
+
+// Definiciones de pasos (Given, When, Then)
+
+// Given
+Cypress.Commands.add('given_estoy_en_pagina_login', () => {
+  visitarPaginaLogin();
+});
+
+Cypress.Commands.add('given_estoy_en_formulario_registro', () => {
+  abrirFormularioRegistro();
+});
+
+// When
+Cypress.Commands.add('when_hago_clic_en_enlace', (enlace) => {
+  cy.contains(enlace).click();
+});
+
+Cypress.Commands.add('when_intento_enviar_formulario_vacio', () => {
+  cy.contains('button', 'Crear cuenta').click();
+});
+
+Cypress.Commands.add('when_relleno_formulario_con_contraseñas_diferentes', (datosTabla) => {
+  rellenarFormulario(datosTabla);
+});
+
+Cypress.Commands.add('when_relleno_formulario_con_datos_validos', (datosTabla) => {
+  rellenarFormulario(datosTabla);
+});
+
+Cypress.Commands.add('when_hago_clic_en_boton', (boton) => {
+  cy.contains('button', boton).click();
+});
+
+Cypress.Commands.add('when_relleno_formulario_con_correo_existente', () => {
+  // Configurar mock para simular correo ya registrado
+  cy.intercept('POST', '/api/auth/register', {
+    statusCode: 400,
+    body: {
+      message: 'El correo electrónico ya está registrado',
+      error: 'EMAIL_ALREADY_EXISTS'
+    },
+    delay: 300
+  }).as('registerError');
+  
+  // Rellenar formulario con datos de prueba
+  cy.get('#first-name').type('Usuario');
+  cy.get('#last-name').type('Existente');
+  cy.get('#email').type('usuario.existente@example.com');
+  cy.get('#password').type('Password123!');
+  cy.get('#password-confirm').type('Password123!');
+  cy.get('#role').select('user');
+});
+
+// Then
+Cypress.Commands.add('then_veo_formulario_registro', () => {
+  cy.get('h3').contains('Crear una cuenta').should('be.visible');
+  cy.get('#first-name').should('be.visible');
+  cy.get('#last-name').should('be.visible');
+  cy.get('#email').should('be.visible');
+  cy.get('#password').should('be.visible');
+  cy.get('#password-confirm').should('be.visible');
+  cy.get('#role').should('be.visible');
+});
+
+Cypress.Commands.add('then_veo_errores_validacion', () => {
+  // Verificar que los campos son requeridos (validación del navegador)
+  cy.get('#first-name:invalid').should('exist');
+});
+
+Cypress.Commands.add('then_veo_error_contraseñas_no_coinciden', () => {
+  cy.contains('Las contraseñas no coinciden').should('be.visible');
+});
+
+Cypress.Commands.add('then_veo_mensaje_registro_exitoso', () => {
+  cy.contains('¡Registro exitoso! Por favor inicia sesión.').should('be.visible');
+});
+
+Cypress.Commands.add('then_veo_error_correo_existente', () => {
+  cy.contains('El correo electrónico ya está registrado').should('be.visible');
+});
+
+// Implementación de los pasos BDD
+Given('estoy en la página de login', () => {
+  cy.given_estoy_en_pagina_login();
+});
+
+Given('estoy en el formulario de registro', () => {
+  cy.given_estoy_en_formulario_registro();
+});
+
+When('hago clic en el enlace {string}', (enlace) => {
+  if (enlace === 'Regístrate') {
+    cy.when_hago_clic_en_enlace('Crear una cuenta');
+  } else {
+    cy.when_hago_clic_en_enlace(enlace);
+  }
+});
+
+When('intento enviar el formulario vacío', () => {
+  cy.when_intento_enviar_formulario_vacio();
+});
+
+When('relleno el formulario con contraseñas diferentes', (datosTabla) => {
+  cy.when_relleno_formulario_con_contraseñas_diferentes(datosTabla.hashes());
+});
+
+When('relleno el formulario con datos válidos', (datosTabla) => {
+  cy.when_relleno_formulario_con_datos_validos(datosTabla.hashes());
+});
+
+When('hago clic en el botón {string}', (boton) => {
+  cy.when_hago_clic_en_boton(boton);
+});
+
+When('relleno el formulario con un correo ya registrado', () => {
+  cy.when_relleno_formulario_con_correo_existente();
+});
+
+Then('veo el formulario de registro', () => {
+  cy.then_veo_formulario_registro();
+});
+
+Then('veo errores de validación en el formulario', () => {
+  cy.then_veo_errores_validacion();
+});
+
+Then('veo un mensaje de error indicando que las contraseñas no coinciden', () => {
+  cy.then_veo_error_contraseñas_no_coinciden();
+});
+
+Then('veo un mensaje de registro exitoso', () => {
+  cy.then_veo_mensaje_registro_exitoso();
+});
+
+Then('veo un mensaje de error indicando que el correo ya está registrado', () => {
+  cy.then_veo_error_correo_existente();
+});

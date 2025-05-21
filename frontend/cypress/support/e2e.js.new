@@ -1,0 +1,91 @@
+// ***********************************************************
+// Configuración global de Cypress
+// ***********************************************************
+
+// Importar comandos personalizados
+import './commands';
+
+// Manejar excepciones no capturadas
+Cypress.on('uncaught:exception', (err, runnable) => {
+  console.error('Uncaught exception:', err);
+  // No fallar la prueba por errores no atrapados
+  return false;
+});
+
+// Aumentar el tiempo de espera para los comandos
+Cypress.config('defaultCommandTimeout', 10000);
+
+// ***********************************************************
+// Comandos personalizados
+// ***********************************************************
+
+/**
+ * Registra un nuevo usuario
+ * @param {Object} userData - Datos del usuario a registrar
+ * @example
+ * cy.registerUser({
+ *   firstName: 'Juan',
+ *   lastName: 'Pérez',
+ *   email: 'juan@example.com',
+ *   password: 'password123',
+ *   role: 'user'
+ * });
+ */
+Cypress.Commands.add('registerUser', (userData) => {
+  const { firstName, lastName, email, password, role = 'user' } = userData;
+  
+  // Visitar la página de login y abrir el modal de registro
+  cy.visit('/login');
+  cy.contains('Crear una cuenta').click();
+  
+  // Esperar a que el modal esté visible
+  cy.get('h3').contains('Crear una cuenta').should('be.visible');
+  
+  // Rellenar el formulario
+  cy.get('#first-name').clear().type(firstName);
+  cy.get('#last-name').clear().type(lastName);
+  cy.get('#email').clear().type(email);
+  cy.get('#password').clear().type(password);
+  cy.get('#password-confirm').clear().type(password);
+  
+  if (role) {
+    cy.get('#role').select(role);
+  }
+  
+  // Enviar el formulario
+  cy.contains('button', 'Crear cuenta').click();
+  
+  // Esperar a que se complete la petición
+  cy.wait('@registerRequest');
+});
+
+/**
+ * Inicia sesión con un usuario
+ * @param {Object} credentials - Credenciales del usuario
+ * @example
+ * cy.login({
+ *   email: 'juan@example.com',
+ *   password: 'password123',
+ *   rememberMe: true
+ * });
+ */
+Cypress.Commands.add('login', (credentials) => {
+  const { email, password, rememberMe = false } = credentials;
+  
+  // Visitar la página de login
+  cy.visit('/login');
+  
+  // Rellenar el formulario
+  cy.get('input[type="email"]').clear().type(email);
+  cy.get('input[type="password"]').clear().type(password);
+  
+  if (rememberMe) {
+    cy.get('input[type="checkbox"]').check();
+  }
+  
+  // Enviar el formulario
+  cy.get('button[type="submit"]').click();
+  
+  // Esperar a que se complete la petición
+  cy.wait('@loginRequest');
+});

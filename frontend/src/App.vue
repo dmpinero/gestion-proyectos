@@ -14,17 +14,18 @@
           <!-- Menú de navegación -->
           <div class="hidden sm:ml-6 sm:flex sm:items-center space-x-8">
             <router-link 
-              to="/" 
+              to="/dashboard" 
               class="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium"
               active-class="text-indigo-600 border-b-2 border-indigo-500"
-              exact
+              v-if="authStore.isAuthenticated"
             >
-              Inicio
+              Dashboard
             </router-link>
             <router-link 
-              to="/proyectos" 
+              to="/dashboard" 
               class="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium"
               active-class="text-indigo-600 border-b-2 border-indigo-500"
+              v-if="authStore.isAuthenticated"
             >
               Proyectos
             </router-link>
@@ -32,15 +33,26 @@
               to="/login" 
               class="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium"
               active-class="text-indigo-600"
+              v-if="!authStore.isAuthenticated"
             >
               Iniciar Sesión
             </router-link>
-            <router-link 
-              to="/registro" 
+            <button 
+              type="button" 
               class="ml-8 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              @click="openRegisterModal"
+              v-if="!authStore.isAuthenticated"
             >
-              Registrarse
-            </router-link>
+              Crear una cuenta
+            </button>
+            <button 
+              type="button" 
+              class="ml-8 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              @click="authStore.logout()"
+              v-if="authStore.isAuthenticated"
+            >
+              Cerrar Sesión
+            </button>
           </div>
           
           <!-- Botón móvil -->
@@ -103,13 +115,13 @@
           >
             Iniciar Sesión
           </router-link>
-          <router-link 
-            to="/registro" 
-            class="block px-3 py-2 text-base font-medium text-indigo-600 hover:text-indigo-800 hover:bg-gray-50"
-            @click.native="isMenuOpen = false"
+          <button 
+            type="button" 
+            class="block w-full text-left px-3 py-2 text-base font-medium text-indigo-600 hover:text-indigo-800 hover:bg-gray-50"
+            @click="openRegisterModal"
           >
-            Registrarse
-          </router-link>
+            Crear una cuenta
+          </button>
         </div>
       </div>
     </nav>
@@ -131,11 +143,23 @@
 </template>
 
 <script>
+import { useAuthStore } from '@/stores/authStore';
+
 export default {
   name: 'App',
   data() {
     return {
       isMenuOpen: false
+    };
+  },
+  setup() {
+    const authStore = useAuthStore();
+    return { authStore };
+  },
+  methods: {
+    openRegisterModal() {
+      this.authStore.openRegisterModal();
+      this.isMenuOpen = false; // Cerrar el menú móvil si está abierto
     }
   },
   computed: {

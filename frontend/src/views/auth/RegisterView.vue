@@ -196,6 +196,8 @@
 </template>
 
 <script>
+import { mapActions } from 'pinia';
+import { useAuthStore } from '@/stores/authStore';
 import AuthLayout from '@/components/auth/AuthLayout.vue';
 
 export default {
@@ -209,21 +211,29 @@ export default {
       email: '',
       password: '',
       passwordConfirmation: '',
-      termsAccepted: false,
-      showPassword: false,
-      showPasswordConfirmation: false,
       loading: false,
       errors: {
         form: '',
         name: '',
         email: '',
         password: '',
-        passwordConfirmation: '',
-        termsAccepted: ''
-      }
+        passwordConfirmation: ''
+      },
+      showPassword: false,
+      showPasswordConfirmation: false
     };
   },
   methods: {
+    ...mapActions(useAuthStore, ['register']),
+    
+    // Método para manejar la redirección a la página de login
+    goToLogin(email) {
+      // Redirigir a la página de login con el email como parámetro
+      this.$router.push({ 
+        name: 'Login', 
+        query: { email: email }
+      });
+    },
     validateForm() {
       let isValid = true;
       this.errors = { 
@@ -288,26 +298,69 @@ export default {
       this.errors.form = '';
 
       try {
-        // Simulamos una petición de registro
-        await new Promise((resolve, reject) => {
-          setTimeout(() => {
-            // Simulamos un registro exitoso
-            if (this.email && this.password) {
-              resolve();
-            } else {
-              reject(new Error('Error al crear la cuenta. Por favor, inténtalo de nuevo.'));
-            }
-          }, 1500);
-        });
+        const userData = {
+          firstName: this.name.split(' ')[0],
+          lastName: this.name.split(' ').slice(1).join(' ') || 'Usuario',
+          email: this.email,
+          password: this.password
+        };
 
-        // Mostrar mensaje de éxito y redirigir al login
-        this.$router.push({ 
-          name: 'Login', 
-          query: { registered: 'true' } 
-        });
+        console.log('Iniciando registro con datos:', userData);
+        
+        // Registrar al usuario usando el store de autenticación
+        const response = await this.register(userData);
+        console.log('Respuesta del registro:', response);
+        
+        // Mostrar notificación de éxito
+        this.$toast.success('¡Registro exitoso! Redirigiendo al dashboard...');
+        
+        // Verificar si tenemos un token en la respuesta
+        if (response && response.token) {
+          console.log('Token recibido, preparando redirección a la página de éxito...');
+          
+          // Asegurarnos de que el token se guarde correctamente
+          localStorage.setItem('token', response.token);
+          
+          // Guardar datos del usuario si están disponibles
+          if (response.user && response.user.email) {
+            localStorage.setItem('user_email', response.user.email);
+          }
+          
+          console.log('Token guardado en localStorage:', localStorage.getItem('token'));
+          
+          // Esperar un breve momento para que el usuario vea el mensaje
+          setTimeout(() => {
+            console.log('Redirigiendo a la página de registro exitoso...');
+            // Redirigir a la página de registro exitoso con el email como parámetro
+            const email = this.formData.email || '';
+            this.$router.push({
+              name: 'RegisterSuccess',
+              query: { email }
+            });
+          }, 1500);
+        } else {
+          console.warn('No se recibió token, redirigiendo a login...');
+          // Si no tenemos token, redirigir a login
+          this.$router.push({ 
+            name: 'Login', 
+            query: { 
+              registered: 'true', 
+              email: this.email 
+            }
+          });
+        }
       } catch (error) {
         console.error('Error al registrar:', error);
         this.errors.form = error.message || 'Error al crear la cuenta. Por favor, inténtalo de nuevo.';
+        
+        // Mostrar errores del servidor si están disponibles
+        if (error.errors) {
+          for (const [field, messages] of Object.entries(error.errors)) {
+            if (this.errors.hasOwnProperty(field)) {
+              this.errors[field] = messages.join(' ');
+            }
+          }
+        }
       } finally {
         this.loading = false;
       }

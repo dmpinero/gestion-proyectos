@@ -1,0 +1,166 @@
+describe('Pruebas de Registro', () => {
+  const testUser = {
+    firstName: 'Juan',
+    lastName: 'Pérez',
+    email: 'juan.perez@example.com',
+    password: 'Password123!',
+    role: 'user'
+  };
+
+  beforeEach(() => {
+    // Visitar la página de login antes de cada prueba
+    cy.visit('/login');
+    
+    // Esperar a que la página se cargue completamente
+    cy.get('form').should('be.visible');
+    
+    // Limpiar el localStorage antes de cada prueba
+    cy.clearLocalStorage();
+    
+    // Configurar interceptor para las peticiones de registro
+    cy.intercept('POST', '/api/auth/register').as('registerRequest');
+  });
+
+  it('debe mostrar el formulario de registro al hacer clic en el enlace de registro', () => {
+    // Hacer clic en el enlace de registro
+    cy.contains('Crear una cuenta').click();
+    
+    // Verificar que el modal de registro esté visible
+    cy.get('h3').should('contain', 'Crear una cuenta');
+    
+    // Verificar que los campos del formulario estén presentes
+    cy.get('#first-name').should('be.visible');
+    cy.get('#last-name').should('be.visible');
+    cy.get('#email').should('be.visible');
+    cy.get('#password').should('be.visible');
+    cy.get('#password-confirm').should('be.visible');
+    cy.get('#role').should('be.visible');
+    
+    // Tomar captura de pantalla
+    cy.screenshot('register-form');
+  });
+
+  it('debe mostrar errores de validación en el formulario de registro', () => {
+    // Abrir el formulario de registro
+    cy.contains('Crear una cuenta').click();
+    
+    // Esperar a que el modal esté completamente visible
+    cy.get('h3').should('be.visible');
+    
+    // Intentar enviar el formulario vacío
+    cy.contains('button', 'Crear cuenta').click();
+    
+    // Verificar que los campos son requeridos (validación del navegador)
+    // Nota: La validación exacta depende del navegador, por lo que verificamos los atributos
+    cy.get('#first-name:invalid').should('exist');
+    cy.get('#last-name:invalid').should('exist');
+    cy.get('#email:invalid').should('exist');
+    cy.get('#password:invalid').should('exist');
+    
+    // Tomar captura de pantalla de los errores
+    cy.screenshot('register-form-errors');
+  });
+
+  it('debe mostrar error si las contraseñas no coinciden', () => {
+    // Abrir el formulario de registro
+    cy.contains('Crear una cuenta').click();
+    
+    // Rellenar el formulario con contraseñas que no coinciden
+    cy.get('#first-name').type(testUser.firstName);
+    cy.get('#last-name').type(testUser.lastName);
+    cy.get('#email').type(testUser.email);
+    cy.get('#password').type(testUser.password);
+    cy.get('#password-confirm').type('otra-contraseña');
+    
+    // Enviar el formulario
+    cy.contains('button', 'Crear cuenta').click();
+    
+    // Verificar mensaje de error
+    cy.contains('Las contraseñas no coinciden').should('be.visible');
+    
+    // Tomar captura de pantalla
+    cy.screenshot('register-password-mismatch');
+  });
+
+  it('debe registrar un nuevo usuario exitosamente', () => {
+    // Configurar el mock para simular un registro exitoso
+    const uniqueEmail = `test-${Date.now()}@example.com`;
+    
+    cy.intercept('POST', '/api/auth/register', {
+      statusCode: 201,
+      body: {
+        message: 'Usuario registrado exitosamente',
+        user: {
+          id: 1,
+          email: uniqueEmail,
+          firstName: testUser.firstName,
+          lastName: testUser.lastName,
+          role: testUser.role
+        }
+      },
+      delay: 300
+    }).as('registerSuccess');
+    
+    // Abrir el formulario de registro
+    cy.contains('Crear una cuenta').click();
+    
+    // Rellenar el formulario
+    cy.get('#first-name').type(testUser.firstName);
+    cy.get('#last-name').type(testUser.lastName);
+    cy.get('#email').type(uniqueEmail);
+    cy.get('#password').type(testUser.password);
+    cy.get('#password-confirm').type(testUser.password);
+    cy.get('#role').select(testUser.role);
+    
+    // Enviar el formulario
+    cy.contains('button', 'Crear cuenta').click();
+    
+    // Esperar a que se complete la petición
+    cy.wait('@registerSuccess');
+    
+    // Verificar que se muestra el mensaje de éxito
+    cy.contains('¡Registro exitoso! Por favor inicia sesión.').should('be.visible');
+    
+    // Verificar que el modal se cerró (después de un breve retraso)
+    cy.wait(400); // Esperar a que se cierre el modal
+    cy.get('h3').should('not.exist');
+    
+    // Tomar captura de pantalla del mensaje de éxito
+    cy.screenshot('register-success');
+  });
+
+  it('debe mostrar error si el correo ya está registrado', () => {
+    // Configurar el mock para simular que el correo ya existe
+    cy.intercept('POST', '/api/auth/register', {
+      statusCode: 400,
+      body: {
+        message: 'El correo electrónico ya está registrado',
+        error: 'EMAIL_ALREADY_EXISTS'
+      },
+      delay: 300
+    }).as('registerError');
+    
+    // Abrir el formulario de registro
+    cy.contains('Crear una cuenta').click();
+    
+    // Rellenar el formulario
+    cy.get('#first-name').type(testUser.firstName);
+    cy.get('#last-name').type(testUser.lastName);
+    cy.get('#email').type(testUser.email);
+    cy.get('#password').type(testUser.password);
+    cy.get('#password-confirm').type(testUser.password);
+    cy.get('#role').select(testUser.role);
+    
+    // Enviar el formulario
+    cy.contains('button', 'Crear cuenta').click();
+    
+    // Esperar a que se complete la petición
+    cy.wait('@registerError');
+    
+    // Verificar que se muestra el mensaje de error
+    cy.contains('El correo electrónico ya está registrado').should('be.visible');
+    
+    // Tomar captura de pantalla del error
+    cy.screenshot('register-email-exists');
+  });
+});
